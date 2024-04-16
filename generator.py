@@ -12,37 +12,37 @@ ENABLE_REFINER = False
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-if torch.cuda.is_available():
-    vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
-    pipe = DiffusionPipeline.from_pretrained(
+
+vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+pipe = DiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-xl-base-1.0",
         vae=vae,
         torch_dtype=torch.float16,
         use_safetensors=True,
         variant="fp16",
     ).to(device)
-    if ENABLE_REFINER:
-        refiner = DiffusionPipeline.from_pretrained(
+if ENABLE_REFINER:
+    refiner = DiffusionPipeline.from_pretrained(
             "stabilityai/stable-diffusion-xl-refiner-1.0",
             vae=vae,
             torch_dtype=torch.float16,
             use_safetensors=True,
             variant="fp16",
-        )
+    )
 
-    if ENABLE_CPU_OFFLOAD:
-        pipe.enable_model_cpu_offload()
-        if ENABLE_REFINER:
-            refiner.enable_model_cpu_offload()
-    else:
-        pipe.to(device)
-        if ENABLE_REFINER:
-            refiner.to(device)
+if ENABLE_CPU_OFFLOAD:
+    pipe.enable_model_cpu_offload()
+if ENABLE_REFINER:
+    refiner.enable_model_cpu_offload()
+else:
+    pipe.to(device)
+if ENABLE_REFINER:
+    refiner.to(device)
 
-    if USE_TORCH_COMPILE:
-        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True)
-        if ENABLE_REFINER:
-            refiner.unet = torch.compile(refiner.unet, mode="reduce-overhead", fullgraph=True)
+if USE_TORCH_COMPILE:
+    pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True)
+    if ENABLE_REFINER:
+        refiner.unet = torch.compile(refiner.unet, mode="reduce-overhead", fullgraph=True)
 @spaces.GPU
 def generate(
     prompt: str,
