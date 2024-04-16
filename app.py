@@ -13,12 +13,12 @@ from flask import (
     Flask, request,
     json, make_response, Response
 )
-# from flask_cors import CORS, cross_origin
+from flask_cors import CORS, cross_origin
 from generator import generate
 from asgiref.wsgi import WsgiToAsgi
 # Module
 app = Flask(__name__)
-# cors = CORS(app)
+cors = CORS(app)
 asgi_app = WsgiToAsgi(app)
 api_cors = {
   "origins": ["*"],
@@ -151,7 +151,7 @@ def make_file_save_error_response()-> Response:
     return result
 
 @app.route('/floor_plan_pretarin', methods = ['POST'])
-# @cross_origin(**api_cors)
+@cross_origin(**api_cors)
 def generate_floor_plan():
     """
     method will take the text prompt as input and return the generated reponse.
